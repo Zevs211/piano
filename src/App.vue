@@ -8,7 +8,7 @@
       <div class="flex items-end w-full h-1/5 pb-6">
         <!-- turn off button -->
         <div class="flex flex-col justify-center items-center ml-36">
-          <div class="w-2 h-2 text-white mb-2"><VTurnOff/></div>
+          <div class="w-2 h-2 text-white mb-3"><VTurnOff/></div>
           <div class="z-30 flex items-center w-1 h-6 shadow shadow-black bg-slate-800 cursor-pointer"
             @click="turnOff">
             <div v-if="pianoSwitcher" class="z-10 w-full h-full bg-[url('./assets/img/pushedButton.png')]"></div>
@@ -18,13 +18,13 @@
         <!-- Volume level -->
         <div class="flex flex-col ml-5">
           <div class="flex justify-between mb-3">
-            <div class="circle" :class="{'bg-black' : gain === 0}, {'bg-slate-50' : gain >= 0.2}"></div>
-            <div class="circle" :class="{'bg-slate-50' : gain === 0.4}, {'bg-slate-50' : gain > 0.4}"></div>
-            <div class="circle" :class="{'bg-slate-50' : gain === 0.6}, {'bg-slate-50' : gain > 0.6}"></div>
-            <div class="circle" :class="{'bg-slate-50' : gain === 0.8}, {'bg-slate-50' : gain > 0.8}"></div>
-            <div class="circle" :class="{'bg-slate-50' : gain === 1}"></div>
+            <div class="circle mx-px" :class="{'bg-black' : gain === 0 && pianoSwitcher}, {'bg-slate-50' : gain >= 0.2 && pianoSwitcher}"></div>
+            <div class="circle mx-px" :class="{'bg-slate-50' : gain === 0.4 && pianoSwitcher}, {'bg-slate-50' : gain > 0.4 && pianoSwitcher}"></div>
+            <div class="circle mx-px" :class="{'bg-slate-50' : gain === 0.6 && pianoSwitcher}, {'bg-slate-50' : gain > 0.6 && pianoSwitcher}"></div>
+            <div class="circle mx-px" :class="{'bg-slate-50' : gain === 0.8 && pianoSwitcher}, {'bg-slate-50' : gain > 0.8 && pianoSwitcher}"></div>
+            <div class="circle mx-px" :class="{'bg-slate-50' : gain === 1 && pianoSwitcher}"></div>
           </div>
-          <div class="flex">
+          <div class="flex justify-center">
             <div 
               class="down flex items-center w-1 h-6 shadow shadow-black bg-slate-800 cursor-pointer"
               @click="volumeDown"
@@ -40,22 +40,39 @@
             </div>
           </div>
         </div>
-        <!-- Selected type -->
-        <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 ml-5">
-          <div class="w-full h-5 bg-slate-500"></div>
-        </div>
-        <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 ml-4">
-          <div class="w-full h-5 bg-slate-500"></div>
-        </div>
-        <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 ml-4">
-          <div class="w-full h-5 bg-slate-500"></div>
+        <!-- Selected tone -->
+        <div class="flex flex-col justify-center items-center w-40">
+          <div class="flex">
+            <div v-for="tone in tones" :key="tone" class="flex">
+              <span class="tone text-white mx-1">{{tone}}</span>
+            </div>
+          </div>
+          <div class="flex">
+            <div v-for="tone in tones" :key="tone" :id="`${tone}`" 
+              class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 cursor-pointer mx-2 mt-2"
+              @click="selectTone(tone)"
+            >
+              <div :id="`inside-${tone}`" class="w-full h-5 bg-slate-500"></div>
+            </div>
+          </div>
         </div>
         <!-- Select octave interval -->
-        <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 ml-5">
-          <div class="w-full h-5 bg-slate-500"></div>
+        <div class="flex flex-col justify-center items-center h-fit w-fit -mb-3 mr-3">
+          <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800"
+            @click="selectOctave"
+            >
+            <div class="w-full h-5 bg-slate-500"></div>
+          </div>
+          <VArrowLeft class="w-3 h-3 text-slate-50 pt-1"/>
         </div>
-        <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 ml-4">
-          <div class="w-full h-5 bg-slate-500"></div>
+
+        <div class="flex flex-col justify-center items-center h-fit w-fit -mb-3">
+          <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800"
+            @click="selectOctave"
+            >
+            <div class="w-full h-5 bg-slate-500"></div>
+          </div>
+          <VArrowRight class="w-3 h-3 text-slate-50 pt-1"/>
         </div>
       </div>
         
@@ -73,10 +90,42 @@
 <script setup>
 import VTurnOff from './assets/icons/VTurnOff.vue'
 import { pianoButtons } from './helpers/notes'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import VArrowLeft from './assets/icons/VArrowLeft.vue'
+import VArrowRight from './assets/icons/VArrowRight.vue'
 
-const pianoSwitcher = ref(false);
+const pianoSwitcher = ref(false)
 const gain = ref(0.4)
+const tones = ['square', 'sawtooth', 'triangle']
+const currentTone = ref('square')
+const currentOctave = ref([])
+
+watch(pianoSwitcher, (newValue, oldValue) => {
+  if (newValue === false) {
+    const outside = document.querySelector(`#${currentTone.value}`)
+    const insideTone = document.querySelector(`#inside-${currentTone.value}`)
+    outside.classList.remove("z-20","bg-[url('./assets/img/pushedButton.png')]")
+    insideTone.classList.add("bg-slate-500")
+  } else if(newValue){
+    const outside = document.querySelector(`#${currentTone.value}`)
+    const insideTone = document.querySelector(`#inside-${currentTone.value}`)
+    outside.classList.add("z-20","bg-[url('./assets/img/pushedButton.png')]")
+    insideTone.classList.remove("bg-slate-500")
+  }
+})
+
+watch(currentTone, (newValue, oldValue) => {
+    const outside = document.querySelector(`#${newValue}`)
+    const insideTone = document.querySelector(`#inside-${newValue}`)
+    outside.classList.add("z-20","bg-[url('./assets/img/pushedButton.png')]")
+    insideTone.classList.remove("bg-slate-500")
+  if(oldValue !== newValue){
+    const outside = document.querySelector(`#${oldValue}`)
+    const insideTone = document.querySelector(`#inside-${oldValue}`)
+    outside.classList.remove("z-20","bg-[url('./assets/img/pushedButton.png')]")
+    insideTone.classList.add("bg-slate-500")
+  }
+})
 
 function play(pianoButton, index, gain) {
 
@@ -89,7 +138,8 @@ function play(pianoButton, index, gain) {
   volume.gain.value = gain;
 
   const osc = context.createOscillator();
-  osc.type = 'sine';
+  //Selected tone
+  osc.type = currentTone.value;
   osc.frequency.value = pianoButton.frequency;
   osc.connect(volume);
   
@@ -119,7 +169,6 @@ function painter(pianoButton, index) {
 
 function volumeDown() {
   gain.value = +gain.value.toFixed(2)
-  console.log(gain.value);
   const down = document.querySelector('.down')
   const insideDown = document.querySelector('.inside-down')
   down.classList.add("z-20","bg-[url('./assets/img/pushedButton.png')]")
@@ -131,7 +180,6 @@ function volumeDown() {
   if(gain.value === 0){
     return gain.value = 0
   } gain.value = +(gain.value - 0.2).toFixed(2)
-  console.log(gain.value);
 }
 
 function volumeUp() {
@@ -147,11 +195,25 @@ function volumeUp() {
   if(gain.value === 1){
     return gain.value = 1
   } gain.value = +(gain.value + 0.2).toFixed(2)
-  console.log(gain.value);
+}
+function reset() {
+  if(pianoSwitcher.value === false){
+    gain.value = 0.4
+    
+  }
 }
 
 function turnOff() {
   pianoSwitcher.value = !pianoSwitcher.value;
+  reset()
+}
+
+function selectTone(tone) {
+  currentTone.value = tone
+}
+function selectOctave() {
+  
+  console.log(pianoButtons[1]);
 }
 </script>
 
@@ -165,5 +227,8 @@ function turnOff() {
   border-radius: 100%;
   border: 1px solid;
   color: #fff;
+}
+.tone {
+  font-size: x-small;
 }
 </style>
