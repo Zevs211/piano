@@ -1,8 +1,4 @@
 <template>
-<!-- 
-<audio id="audio" controls src=""></audio>
-<input id="range" min="0" max="100" value="0" type="range"> -->
-
   <div class="flex justify-center items-center w-full h-screen">
     <div class="relative flex flex-col w-fit h-72 bg-neutral-600 rounded-2xl px-8">
       <!-- Turn off the piano -->
@@ -20,11 +16,29 @@
           </div>
         </div>
         <!-- Volume level -->
-        <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 ml-5">
-          <div class="w-full h-5 bg-slate-500"></div>
-        </div>
-        <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 ml-4">
-          <div class="w-full h-5 bg-slate-500"></div>
+        <div class="flex flex-col ml-5">
+          <div class="flex justify-between mb-3">
+            <div class="circle" :class="{'bg-black' : gain === 0}, {'bg-slate-50' : gain >= 0.2}"></div>
+            <div class="circle" :class="{'bg-slate-50' : gain === 0.4}, {'bg-slate-50' : gain > 0.4}"></div>
+            <div class="circle" :class="{'bg-slate-50' : gain === 0.6}, {'bg-slate-50' : gain > 0.6}"></div>
+            <div class="circle" :class="{'bg-slate-50' : gain === 0.8}, {'bg-slate-50' : gain > 0.8}"></div>
+            <div class="circle" :class="{'bg-slate-50' : gain === 1}"></div>
+          </div>
+          <div class="flex">
+            <div 
+              class="down flex items-center w-1 h-6 shadow shadow-black bg-slate-800 cursor-pointer"
+              @click="volumeDown"
+            >
+              <div class="inside-down w-full h-5 bg-slate-500"></div>
+            </div>
+
+            <div 
+              class="up flex items-center w-1 h-6 shadow shadow-black bg-slate-800 cursor-pointer ml-4"
+              @click="volumeUp"
+            >
+              <div class="inside-up w-full h-5 bg-slate-500"></div>
+            </div>
+          </div>
         </div>
         <!-- Selected type -->
         <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 ml-5">
@@ -46,16 +60,10 @@
       </div>
         
       <div class="flex w-fit h-3/5 bg-neutral-800 px-1 pt-1 pb-5">
-        <!-- <div v-for="(pianoButton, index) in pianoButtons" :key="index" :id="`piano-white-${index}`"
-          class="flex justify-end items-start w-6 h-full cursor-pointer bg-slate-50 rounded-b-sm mb-10 mr-px"
-          :class="{'z-10 flex justify-center items-end w-3 h-4/6 select-none -translate-x-1/2 cursor-pointer text-white bg-slate-900 pb-3 -mr-3' : pianoButton.split('').find((el) => el ==='#' ) ==='#'}"
-          @click="play(pianoButton, index)"
-        ></div> -->
-
         <div v-for="(pianoButton, index) in pianoButtons" :key="index" :id="`piano-white-${index}`"
           class="flex justify-end items-start w-6 h-full cursor-pointer bg-slate-50 rounded-b-sm mb-10 mr-px"
           :class="{'z-10 flex justify-center items-end w-3 h-4/6 select-none -translate-x-1/2 cursor-pointer text-white bg-slate-900 pb-3 -mr-3' : pianoButton.name.split('').find((el) => el ==='#' ) ==='#'}"
-          @click="play(pianoButton, index)"
+          @click="play(pianoButton, index, gain)"
         ></div>
       </div>
     </div>
@@ -68,42 +76,28 @@ import { pianoButtons } from './helpers/notes'
 import { ref } from 'vue'
 
 const pianoSwitcher = ref(false);
+const gain = ref(0.4)
 
-// const pianoButtons = [
-//   'A0', 'A0#', 'B0', 
-//   'C1', 'C1#', 'D1', 'D1#', 'E1', 'F1', 'F1#', 'G1', 'G1#', 'A1', 'A1#', 'B1', 
-//   'C2', 'C2#', 'D2', 'D2#', 'E2', 'F2', 'F2#', 'G2', 'G2#', 'A2', 'A2#', 'B2',
-//   'C3', 'C3#', 'D3', 'D3#', 'E3', 'F3', 'F3#', 'G3', 'G3#', 'A3', 'A3#', 'B3',
-//   'C4', 'C4#', 'D4', 'D4#', 'E4', 'F4', 'F4#', 'G4', 'G4#', 'A4', 'A4#', 'B4',
-//   'C5', 'C5#', 'D5', 'D5#', 'E5', 'F5', 'F5#', 'G5', 'G5#', 'A5', 'A5#', 'B5',
-//   'C6', 'C6#', 'D6', 'D6#', 'E6', 'F6', 'F6#', 'G6', 'G6#', 'A6', 'A6#', 'B6',
-//   'C7', 'C7#', 'D7', 'D7#', 'E7', 'F7', 'F7#', 'G7', 'G7#', 'A7', 'A7#', 'B7',
-//   'C8'
-// ];
-function play(pianoButton, index) {
+function play(pianoButton, index, gain) {
+
   const context = window.AudioContext ? new AudioContext() : new webkitAudioContext();
-  const osc = context.createOscillator();
+
+  const volume = context.createGain();
+  volume.connect(context.destination);
 
   // Volume level
+  volume.gain.value = gain;
 
-  // const gainNode = context.createGain();
-  // gainNode.gain.value = 0.1;
-  // gainNode.connect(context.destination);
-
-  // const source = context.createBufferSource();
-  // source.buffer = osc
-  // source.connect(gainNode)
-  // source.start()
-  
-  // Frequency transfer to oscillator
+  const osc = context.createOscillator();
+  osc.type = 'sine';
   osc.frequency.value = pianoButton.frequency;
-  osc.type = "square";
-	osc.connect(context.destination);
-	osc.start(0);
+  osc.connect(volume);
+  
+  osc.start();
   setTimeout(() => {
 	    osc.stop(0);
-	    osc.disconnect(context.destination);
-	}, 1000 / 2);
+	}, 500);
+
   painter(pianoButton, index)
 };
 
@@ -123,6 +117,39 @@ function painter(pianoButton, index) {
     }, 1000/2)
 }
 
+function volumeDown() {
+  gain.value = +gain.value.toFixed(2)
+  console.log(gain.value);
+  const down = document.querySelector('.down')
+  const insideDown = document.querySelector('.inside-down')
+  down.classList.add("z-20","bg-[url('./assets/img/pushedButton.png')]")
+  insideDown.classList.remove("bg-slate-500")
+  setTimeout(() => {
+    down.classList.remove("z-20","bg-[url('./assets/img/pushedButton.png')]")
+    insideDown.classList.add("bg-slate-500")
+  }, 100)
+  if(gain.value === 0){
+    return gain.value = 0
+  } gain.value = +(gain.value - 0.2).toFixed(2)
+  console.log(gain.value);
+}
+
+function volumeUp() {
+  gain.value = +gain.value.toFixed(2)
+  const up = document.querySelector('.up')
+  const insideUp = document.querySelector('.inside-up')
+  up.classList.add("z-20","bg-[url('./assets/img/pushedButton.png')]")
+  insideUp.classList.remove("bg-slate-500")
+  setTimeout(() => {
+    up.classList.remove("z-20","bg-[url('./assets/img/pushedButton.png')]")
+    insideUp.classList.add("bg-slate-500")
+  }, 100)
+  if(gain.value === 1){
+    return gain.value = 1
+  } gain.value = +(gain.value + 0.2).toFixed(2)
+  console.log(gain.value);
+}
+
 function turnOff() {
   pianoSwitcher.value = !pianoSwitcher.value;
 }
@@ -131,5 +158,12 @@ function turnOff() {
 <style scoped>
 .dies {
   font-size: 5px;
+}
+.circle {
+  width: 5px;
+  height: 5px;
+  border-radius: 100%;
+  border: 1px solid;
+  color: #fff;
 }
 </style>
