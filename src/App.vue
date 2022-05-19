@@ -78,8 +78,10 @@
         
       <div class="flex w-fit h-3/5 bg-neutral-800 px-1 pt-1 pb-5">
         <div v-for="(pianoButton, index) in pianoButtons" :key="index" :id="`piano-white-${index}`"
-          class="flex justify-end items-start w-6 h-full cursor-pointer bg-slate-50 rounded-b-sm mb-10 mr-px"
-          :class="{'z-10 flex justify-center items-end w-3 h-4/6 select-none -translate-x-1/2 cursor-pointer text-white bg-slate-900 pb-3 -mr-3' : pianoButton.name.split('').find((el) => el ==='#' ) ==='#'}"
+          class="flex justify-end items-start h-full cursor-pointer bg-slate-50 rounded-b-sm mb-10 mr-px"
+          :class="
+          {'z-10 flex justify-center items-end w-3 h-4/6 select-none -translate-x-1/2 cursor-pointer text-white bg-slate-900 pb-3 -mr-3' : pianoButton.name.split('').find((el) => el ==='#' ) ==='#'}, 
+          {'w-6' : pianoButton.name.split('').find((el) => el ==='#' ) !=='#'}"
           @click="play(pianoButton, index, gain)"
         ></div>
       </div>
