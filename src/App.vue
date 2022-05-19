@@ -58,8 +58,8 @@
         </div>
         <!-- Select octave interval -->
         <div class="flex flex-col justify-center items-center h-fit w-fit -mb-3 mr-3">
-          <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800"
-            @click="selectOctave"
+          <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 cursor-pointer"
+            @click="selectOctave(--currentOctave)"
             >
             <div class="w-full h-5 bg-slate-500"></div>
           </div>
@@ -67,8 +67,8 @@
         </div>
 
         <div class="flex flex-col justify-center items-center h-fit w-fit -mb-3">
-          <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800"
-            @click="selectOctave"
+          <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 cursor-pointer"
+            @click="selectOctave(++currentOctave)"
             >
             <div class="w-full h-5 bg-slate-500"></div>
           </div>
@@ -98,7 +98,7 @@ const pianoSwitcher = ref(false)
 const gain = ref(0.4)
 const tones = ['square', 'sawtooth', 'triangle']
 const currentTone = ref('square')
-const currentOctave = ref([])
+const currentOctave = ref(4)
 
 watch(pianoSwitcher, (newValue, oldValue) => {
   if (newValue === false) {
@@ -211,9 +211,28 @@ function turnOff() {
 function selectTone(tone) {
   currentTone.value = tone
 }
-function selectOctave() {
-  
-  console.log(pianoButtons[1]);
+function selectOctave(octave) {
+  let range = []
+  if(octave < 0) {
+    currentOctave.value = 0;
+  } else if(octave > 8) {
+    currentOctave.value = 8;
+  }
+  const octaves = [
+    ['A0', 'B0'],
+    ['C1', 'B1'],
+    ['C2', 'B2'],
+    ['C3', 'B3'],
+    ['C4', 'B4'],
+    ['C5', 'B5'],
+    ['C6', 'B6'],
+    ['C7', 'B7'],
+    ['C8'],
+  ]
+  for (let i = 0; i < octaves[currentOctave.value].length; i++) {
+      range.push(pianoButtons.findIndex(el => el.name === octaves[currentOctave.value][i])  )
+  }
+  console.log(range);
 }
 </script>
 
