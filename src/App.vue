@@ -58,19 +58,19 @@
         </div>
         <!-- Select octave interval -->
         <div class="flex flex-col justify-center items-center h-fit w-fit -mb-3 mr-3">
-          <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 cursor-pointer"
-            @click="selectOctave(--currentOctave)"
+          <div class="arrow-left flex items-center w-1 h-6 shadow shadow-black bg-slate-800 cursor-pointer"
+            @click="selectOctaveDown(--currentOctave)"
             >
-            <div class="w-full h-5 bg-slate-500"></div>
+            <div class="inside-arrow-left w-full h-5 bg-slate-500"></div>
           </div>
           <VArrowLeft class="w-3 h-3 text-slate-50 pt-1"/>
         </div>
 
         <div class="flex flex-col justify-center items-center h-fit w-fit -mb-3">
-          <div class="flex items-center w-1 h-6 shadow shadow-black bg-slate-800 cursor-pointer"
-            @click="selectOctave(++currentOctave)"
+          <div class="arrow-right flex items-center w-1 h-6 shadow shadow-black bg-slate-800 cursor-pointer"
+            @click="selectOctaveUp(++currentOctave)"
             >
-            <div class="w-full h-5 bg-slate-500"></div>
+            <div class="inside-arrow-right w-full h-5 bg-slate-500"></div>
           </div>
           <VArrowRight class="w-3 h-3 text-slate-50 pt-1"/>
         </div>
@@ -99,6 +99,7 @@ const gain = ref(0.4)
 const tones = ['square', 'sawtooth', 'triangle']
 const currentTone = ref('square')
 const currentOctave = ref(4)
+const currentOctaveIndex = ref([39, 50])
 
 watch(pianoSwitcher, (newValue, oldValue) => {
   if (newValue === false) {
@@ -128,27 +129,52 @@ watch(currentTone, (newValue, oldValue) => {
 })
 
 function play(pianoButton, index, gain) {
-
-  const context = window.AudioContext ? new AudioContext() : new webkitAudioContext();
-
-  const volume = context.createGain();
-  volume.connect(context.destination);
-
-  // Volume level
-  volume.gain.value = gain;
-
-  const osc = context.createOscillator();
-  //Selected tone
-  osc.type = currentTone.value;
-  osc.frequency.value = pianoButton.frequency;
-  osc.connect(volume);
+  console.log(index);
+  if (index >= currentOctaveIndex.value[0] && index <= currentOctaveIndex.value[1]) {
+    const context = window.AudioContext ? new AudioContext() : new webkitAudioContext();
   
-  osc.start();
-  setTimeout(() => {
-	    osc.stop(0);
-	}, 500);
-
-  painter(pianoButton, index)
+    const volume = context.createGain();
+    volume.connect(context.destination);
+  
+    // Volume level
+    volume.gain.value = gain;
+  
+    const osc = context.createOscillator();
+    //Selected tone
+    osc.type = currentTone.value;
+    osc.frequency.value = pianoButton.frequency;
+    osc.connect(volume);
+    
+    osc.start();
+    setTimeout(() => {
+	      osc.stop(0);
+	  }, 500);
+  
+    painter(pianoButton, index)
+  } if(index === 87) {
+    const context = window.AudioContext ? new AudioContext() : new webkitAudioContext();
+  
+    const volume = context.createGain();
+    volume.connect(context.destination);
+  
+    // Volume level
+    volume.gain.value = gain;
+  
+    const osc = context.createOscillator();
+    //Selected tone
+    osc.type = currentTone.value;
+    osc.frequency.value = pianoButton.frequency;
+    osc.connect(volume);
+    
+    osc.start();
+    setTimeout(() => {
+	      osc.stop(0);
+	  }, 500);
+  
+    painter(pianoButton, index)
+  }
+  else {return}
+  
 };
 
 function painter(pianoButton, index) {
@@ -211,7 +237,15 @@ function turnOff() {
 function selectTone(tone) {
   currentTone.value = tone
 }
-function selectOctave(octave) {
+function selectOctaveDown(octave) {
+  const arrayLeft = document.querySelector('.arrow-left')
+  const insideArrowLeft = document.querySelector('.inside-arrow-left')
+  arrayLeft.classList.add("z-20","bg-[url('./assets/img/pushedButton.png')]")
+  insideArrowLeft.classList.remove("bg-slate-500")
+  setTimeout(() => {
+    arrayLeft.classList.remove("z-20","bg-[url('./assets/img/pushedButton.png')]")
+    insideArrowLeft.classList.add("bg-slate-500")
+  }, 100)
   let range = []
   if(octave < 0) {
     currentOctave.value = 0;
@@ -232,7 +266,38 @@ function selectOctave(octave) {
   for (let i = 0; i < octaves[currentOctave.value].length; i++) {
       range.push(pianoButtons.findIndex(el => el.name === octaves[currentOctave.value][i])  )
   }
-  console.log(range);
+  currentOctaveIndex.value = range
+}
+function selectOctaveUp(octave) {
+  const arrayRight = document.querySelector('.arrow-right')
+  const insideArrowRight = document.querySelector('.inside-arrow-right')
+  arrayRight.classList.add("z-20","bg-[url('./assets/img/pushedButton.png')]")
+  insideArrowRight.classList.remove("bg-slate-500")
+  setTimeout(() => {
+    arrayRight.classList.remove("z-20","bg-[url('./assets/img/pushedButton.png')]")
+    insideArrowRight.classList.add("bg-slate-500")
+  }, 100)
+  let range = []
+  if(octave < 0) {
+    currentOctave.value = 0;
+  } else if(octave > 8) {
+    currentOctave.value = 8;
+  }
+  const octaves = [
+    ['A0', 'B0'],
+    ['C1', 'B1'],
+    ['C2', 'B2'],
+    ['C3', 'B3'],
+    ['C4', 'B4'],
+    ['C5', 'B5'],
+    ['C6', 'B6'],
+    ['C7', 'B7'],
+    ['C8'],
+  ]
+  for (let i = 0; i < octaves[currentOctave.value].length; i++) {
+      range.push(pianoButtons.findIndex(el => el.name === octaves[currentOctave.value][i])  )
+  }
+  currentOctaveIndex.value = range
 }
 </script>
 
