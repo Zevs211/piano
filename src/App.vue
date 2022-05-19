@@ -151,7 +151,8 @@ function play(pianoButton, index, gain) {
 	  }, 500);
   
     painter(pianoButton, index)
-  } if(index === 87) {
+  } if(currentOctaveIndex.value[0] === 87 && index >= currentOctaveIndex.value[0]) {
+    console.log(currentOctaveIndex.value[0]);
     const context = window.AudioContext ? new AudioContext() : new webkitAudioContext();
   
     const volume = context.createGain();
@@ -267,6 +268,11 @@ function selectOctaveDown(octave) {
       range.push(pianoButtons.findIndex(el => el.name === octaves[currentOctave.value][i])  )
   }
   currentOctaveIndex.value = range
+  pianoButtons.forEach((el, index) => {
+    if(index >= currentOctaveIndex.value[0] && index <= currentOctaveIndex.value[1]){
+      painter(el, index)
+    }
+  })
 }
 function selectOctaveUp(octave) {
   const arrayRight = document.querySelector('.arrow-right')
@@ -298,6 +304,18 @@ function selectOctaveUp(octave) {
       range.push(pianoButtons.findIndex(el => el.name === octaves[currentOctave.value][i])  )
   }
   currentOctaveIndex.value = range
+  pianoButtons.forEach((el, index) => {
+    if(index >= currentOctaveIndex.value[0] && index <= currentOctaveIndex.value[1]){
+      painter(el, index)
+    } else if (currentOctaveIndex.value[0] === 87) {
+      const whiteKey = document.querySelector(`#piano-white-${87}`)
+      whiteKey.classList.add("bg-[url('./assets/img/pushedWhite.png')]", "bg-no-repeat", "bg-cover")
+      setTimeout (() => {
+        whiteKey.classList.add("bg-slate-50")
+        whiteKey.classList.remove("bg-[url('./assets/img/pushedWhite.png')]", "bg-no-repeat", "bg-cover")
+      }, 1000/2)
+    }
+  })
 }
 </script>
 
